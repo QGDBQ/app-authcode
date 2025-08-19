@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}应用授权管理系统{% endblock %}</title>
+    <!-- favicon -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='moban/favicon.ico') }}" type="image/x-icon">
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='moban/assets/css/bootstrap.min.css') }}">
+    <!-- fontawesome icon  -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='moban/assets/css/fontawesome.min.css') }}">
+    <!-- flaticon css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='moban/assets/fonts/flaticon.css') }}">
+    <!-- animate.css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='moban/assets/css/animate.css') }}">
+    <!-- Owl Carousel -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='moban/assets/css/owl.carousel.min.css') }}">
+    <!-- magnific popup -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='moban/assets/css/magnific-popup.css') }}">
+    <!-- stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='moban/assets/css/style.css') }}">
+    <!-- responsive -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='moban/assets/css/responsive.css') }}">
+    
+    <!-- 自定义样式 -->
+    <style>
+        /* 授权系统专用样式 */
+        .auth-system-content {
+            min-height: 60vh;
+            padding: 60px 0;
+        }
+        
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .auth-card-header {
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .auth-card-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .auth-card-subtitle {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .auth-form-group {
+            margin-bottom: 20px;
+        }
+        
+        .auth-form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        
+        .auth-form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .auth-btn {
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .auth-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .auth-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .auth-btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .auth-btn-warning {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .auth-btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+        
+        .auth-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .auth-table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 15px;
+        }
+        
+        .auth-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .auth-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .auth-table td {
+            padding: 15px;
+            border-color: rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+        
+        .auth-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .auth-badge-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .auth-badge-warning {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .auth-badge-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+        
+        .auth-alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .auth-system-content {
+                padding: 30px 0;
+            }
+            
+            .auth-card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .auth-table {
+                font-size: 14px;
+            }
+            
+            .auth-table td {
+                padding: 10px 8px;
+            }
+        }
+        
+        /* 模态框样式 */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 15px 15px 0 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .modal-header .btn-close {
+            filter: invert(1);
+        }
+        
+        /* Toast 样式 */
+        .toast-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        
+        .toast-message.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .toast-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .toast-error {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+    </style>
+    
+    {% block styles %}{% endblock %}
+</head>
+
+<body>
+    <!-- preloader begin-->
+    <div class="preloader">
+        <div class="loader">
+            <hr><hr>
+        </div>
+    </div>
+    <!-- preloader end -->
+
+    <!-- header begin-->
+    <div class="header">
+        <div class="container">
+            <div class="row justify-content-between d-flex">
+                <div class="col-xl-2 col-lg-2 d-xl-flex d-lg-flex d-block align-items-center mobile-header">
+                    <div class="row d-flex">
+                        <div class="col-xl-12 col-lg-12 col-6 d-flex align-items-center">
+                            <div class="logo">
+                                <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='moban/assets/img/logo.png') }}" alt="授权系统"></a>
+                            </div>
+                        </div>
+                        <div class="col-xl-12 col-6 d-xl-none d-lg-none d-block">
+                            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup"
+                                aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"><i class="fas fa-bars"></i></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-8 col-lg-8 min-height-none">
+                    <div class="main-menu">
+                        <nav class="navbar navbar-expand-lg">
+                            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                                <ul class="navbar-nav nav justify-content-center">
+                                    {% if current_user.is_authenticated %}
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ 'active' if request.endpoint == 'index' }}" href="{{ url_for('index') }}">首页</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ 'active' if request.endpoint == 'apps' }}" href="{{ url_for('apps') }}">应用管理</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ 'active' if request.endpoint == 'logs' }}" href="{{ url_for('logs') }}">访问日志</a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+
+                <div class="col-xl-2 col-lg-2 d-xl-flex d-lg-flex d-none align-items-center">
+                    <div class="login">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('logout') }}">退出</a>
+                        {% else %}
+                            <a href="{{ url_for('login') }}">登录</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- header end -->
+
+    <!-- 主要内容区域 -->
+    <div class="auth-system-content">
+        <div class="container">
+
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- footer begin-->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-5 col-lg-5 col-md-6">
+                    <div class="about-area">
+                        <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='moban/assets/img/logo.png') }}" alt="授权系统"></a>
+                        <p>专业的应用授权管理系统，为您的应用提供安全可靠的授权验证服务。支持临时、按天和永久授权模式。</p>
+                    </div>
+                    <div class="social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-google-plus-g"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-lg-2 col-md-6">
+                    <div class="links">
+                        <h3>功能</h3>
+                        <ul>
+                            {% if current_user.is_authenticated %}
+                            <li><a href="{{ url_for('index') }}">创建授权</a></li>
+                            <li><a href="{{ url_for('apps') }}">应用管理</a></li>
+                            <li><a href="{{ url_for('logs') }}">访问日志</a></li>
+                            {% else %}
+                            <li><a href="{{ url_for('login') }}">用户登录</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-lg-2 col-md-6">
+                    <div class="links">
+                        <h3>授权类型</h3>
+                        <ul>
+                            <li><a href="#">临时授权</a></li>
+                            <li><a href="#">按天授权</a></li>
+                            <li><a href="#">永久授权</a></li>
+                            <li><a href="#">授权验证</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-6">
+                    <div class="address">
+                        <h3>联系我们</h3>
+                        <ul>
+                            <li>应用授权管理系统<br/>专业版</li>
+                            <li>support@authsystem.com</li>
+                            <li>400-888-9999</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xl-12 col-lg-12 text-center">
+                    <div class="copyright">
+                        <p>Copyright &copy; 2024 应用授权管理系统. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- footer end -->
+
+    <!-- jquery -->
+    <script src="{{ url_for('static', filename='moban/assets/js/jquery.js') }}"></script>
+    <!-- bootstrap -->
+    <script src="{{ url_for('static', filename='moban/assets/js/bootstrap.min.js') }}"></script>
+    <!-- owl carousel -->
+    <script src="{{ url_for('static', filename='moban/assets/js/owl.carousel.js') }}"></script>
+    <!-- magnific popup -->
+    <script src="{{ url_for('static', filename='moban/assets/js/jquery.magnific-popup.js') }}"></script>
+    <!-- way poin js-->
+    <script src="{{ url_for('static', filename='moban/assets/js/waypoints.min.js') }}"></script>
+    <!-- wow js-->
+    <script src="{{ url_for('static', filename='moban/assets/js/wow.min.js') }}"></script>
+    <!-- main -->
+    <script src="{{ url_for('static', filename='moban/assets/js/main.js') }}"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

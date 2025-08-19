@@ -1,0 +1,592 @@
+{% extends "base_moban.html" %}
+
+{% block title %}访问日志{% endblock %}
+
+{% block styles %}
+<style>
+/* 日志页面专用样式 */
+.logs-section {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.section-title h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.section-title p {
+    font-size: 1.1rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.page-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.page-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+.page-subtitle {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.logs-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.logs-stats .stat-item {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logs-stats .stat-item.success {
+    background: rgba(40, 167, 69, 0.2);
+}
+
+.logs-stats .stat-item.failed {
+    background: rgba(220, 53, 69, 0.2);
+}
+
+.logs-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.logs-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.logs-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #495057;
+    font-size: 1.25rem;
+}
+
+.logs-filter {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filter-btn {
+    background: #e9ecef;
+    border: none;
+    color: #6c757d;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-btn:hover {
+    background: #dee2e6;
+    color: #495057;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.logs-body {
+    padding: 2rem;
+}
+
+.logs-timeline {
+    position: relative;
+}
+
+.log-item {
+    display: flex;
+    margin-bottom: 1.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.log-item:hover {
+    transform: translateX(5px);
+}
+
+.log-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.log-item.success .log-indicator {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.log-item.failed .log-indicator {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.log-content {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 4px solid transparent;
+}
+
+.log-item.success .log-content {
+    border-left-color: #28a745;
+}
+
+.log-item.failed .log-content {
+    border-left-color: #dc3545;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.log-app-code {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.log-app-code code {
+    background: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid #dee2e6;
+}
+
+.log-time {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.time-date {
+    font-weight: 600;
+}
+
+.time-relative {
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.log-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.log-ip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+}
+
+.status-badge.status-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.status-badge.status-failed {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.log-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+    background: white;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.empty-logs {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: #dee2e6;
+}
+
+.empty-logs h5 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.empty-logs p {
+    color: #adb5bd;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1.5rem;
+    }
+    
+    .page-title-wrapper {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+    }
+    
+    .logs-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .logs-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .logs-filter {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .logs-body {
+        padding: 1.5rem;
+    }
+    
+    .log-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .log-indicator {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+        align-self: flex-start;
+    }
+    
+    .log-content {
+        width: 100%;
+        padding: 1rem;
+    }
+    
+    .log-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .log-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-header {
+        margin-left: -15px;
+        margin-right: -15px;
+        border-radius: 0;
+        padding: 1rem;
+    }
+    
+    .logs-card {
+        margin-left: -15px;
+        margin-right: -15px;
+        border-radius: 0;
+    }
+    
+    .logs-stats .stat-item {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .logs-header {
+        padding: 1rem;
+    }
+    
+    .logs-body {
+        padding: 1rem;
+    }
+    
+    .log-content {
+        padding: 0.75rem;
+    }
+    
+    .log-app-code code {
+        font-size: 0.75rem;
+    }
+    
+    .empty-logs {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 访问日志区域 -->
+<div class="logs-section">
+    <div class="container">
+        <!-- 页面标题区域 -->
+        <div class="section-title">
+            <h2>访问日志</h2>
+            <p>查看应用授权的访问记录和统计信息，监控系统使用情况</p>
+        </div>
+        
+        
+
+        <!-- 日志列表卡片 -->
+        <div class="row">
+            <div class="col-12">
+                <div class="logs-card">
+            <div class="logs-header">
+                <h5><i class="bi bi-clock-history me-2"></i>最近访问记录</h5>
+                <div class="logs-filter">
+                    <button class="filter-btn active" data-filter="all">
+                        <i class="bi bi-list"></i> 全部
+                    </button>
+                    <button class="filter-btn" data-filter="success">
+                        <i class="bi bi-check-circle"></i> 成功
+                    </button>
+                    <button class="filter-btn" data-filter="failed">
+                        <i class="bi bi-x-circle"></i> 失败
+                    </button>
+                </div>
+            </div>
+            <div class="logs-body">
+                {% if logs %}
+                <div class="logs-timeline">
+                    {% for log in logs %}
+                    <div class="log-item {{ 'success' if log.success else 'failed' }}" data-status="{{ 'success' if log.success else 'failed' }}">
+                        <div class="log-indicator">
+                            <i class="bi bi-{{ 'check-circle-fill' if log.success else 'x-circle-fill' }}"></i>
+                        </div>
+                        <div class="log-content">
+                            <div class="log-header">
+                                <div class="log-app-code">
+                                    <i class="bi bi-code-square"></i>
+                                    <code>{{ log.app_code }}</code>
+                                </div>
+                                <div class="log-time">
+                                    <i class="bi bi-clock"></i>
+                                    <span class="time-date">{{ log.access_time.strftime('%Y-%m-%d') }}</span>
+                                    <span class="time-hour">{{ log.access_time.strftime('%H:%M:%S') }}</span>
+                                </div>
+                            </div>
+                            <div class="log-details">
+                                <div class="log-ip">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span>{{ log.ip_address }}</span>
+                                </div>
+                                <div class="log-status">
+                                    <span class="status-badge {{ 'status-success' if log.success else 'status-failed' }}">
+                                        <i class="bi bi-{{ 'check-circle' if log.success else 'x-circle' }}"></i>
+                                        {{ '验证成功' if log.success else '验证失败' }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% if log.message %}
+                            <div class="log-message">
+                                <i class="bi bi-info-circle"></i>
+                                <span>{{ log.message }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-logs">
+                    <div class="empty-icon">
+                        <i class="bi bi-journal-x"></i>
+                    </div>
+                    <h5>暂无访问记录</h5>
+                    <p>当有应用授权验证请求时，相关日志将显示在这里</p>
+                </div>
+                {% endif %}
+            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 日志过滤功能
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const logItems = document.querySelectorAll('.log-item');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // 移除所有按钮的active类
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // 添加当前按钮的active类
+            this.classList.add('active');
+            
+            const filter = this.getAttribute('data-filter');
+            
+            logItems.forEach(item => {
+                if (filter === 'all') {
+                    item.style.display = 'flex';
+                } else {
+                    const status = item.getAttribute('data-status');
+                    if (status === filter) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+    
+    // 添加时间格式化
+    const timeElements = document.querySelectorAll('.log-time');
+    timeElements.forEach(element => {
+        const timeText = element.querySelector('.time-hour').textContent;
+        const dateText = element.querySelector('.time-date').textContent;
+        
+        // 添加相对时间显示
+        const logTime = new Date(dateText + ' ' + timeText);
+        const now = new Date();
+        const diffMs = now - logTime;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        let relativeTime = '';
+        if (diffMins < 1) {
+            relativeTime = '刚刚';
+        } else if (diffMins < 60) {
+            relativeTime = `${diffMins}分钟前`;
+        } else if (diffHours < 24) {
+            relativeTime = `${diffHours}小时前`;
+        } else {
+            relativeTime = `${diffDays}天前`;
+        }
+        
+        // 添加相对时间元素
+        const relativeElement = document.createElement('span');
+        relativeElement.className = 'time-relative';
+        relativeElement.textContent = relativeTime;
+        element.appendChild(relativeElement);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,867 @@
+{% extends "base_moban.html" %}
+
+{% block title %}应用管理{% endblock %}
+
+{% block content %}
+<!-- 应用管理区域 -->
+<div class="apps-section">
+    <div class="container">
+        <!-- 页面标题区域 -->
+        <div class="section-title">
+            <h2>应用管理</h2>
+            <p>管理您创建的所有应用授权，查看使用情况和状态</p>
+        </div>
+        
+        <!-- 应用列表卡片 -->
+        <div class="row">
+            <div class="col-12">
+                <div class="apps-card">
+            <div class="apps-header">
+                <h5><i class="bi bi-list-ul me-2"></i>应用列表</h5>
+                <div class="apps-stats" id="appsStats">
+                    <span class="stat-badge">总计: <span id="totalApps">0</span></span>
+                    <span class="stat-badge active">活跃: <span id="activeApps">0</span></span>
+                </div>
+            </div>
+            <div class="apps-body">
+                <div class="table-container">
+                    <table class="apps-table">
+                        <thead>
+                            <tr>
+                                <th><i class="bi bi-file-text me-1"></i>应用名</th>
+                                <th><i class="bi bi-code-square me-1"></i>应用码</th>
+                                <th><i class="bi bi-key me-1"></i>密钥</th>
+                                <th><i class="bi bi-tag me-1"></i>类型</th>
+                                <th><i class="bi bi-graph-up me-1"></i>使用情况</th>
+                                <th><i class="bi bi-toggle-on me-1"></i>状态</th>
+                                <th><i class="bi bi-calendar me-1"></i>创建时间</th>
+                                <th><i class="bi bi-gear me-1"></i>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appsTableBody">
+                            <tr class="loading-row">
+                                <td colspan="8">
+                                    <div class="loading-content">
+                                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                        <span>加载中...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- 密钥查看弹窗 -->
+<div class="modal fade" id="secretModal" tabindex="-1" aria-labelledby="secretModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="secretModalLabel">
+                    <i class="bi bi-key me-2"></i>应用密钥
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="secret-display">
+                    <label class="form-label">应用码</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="modalAppCode" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyFromModal('modalAppCode')">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <label class="form-label">密钥</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="modalSecretKey" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyFromModal('modalSecretKey')">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>安全提示：</strong>请妥善保管您的密钥，不要泄露给他人。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block styles %}
+<style>
+/* 应用管理页面专用样式 */
+.apps-section {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.section-title h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.section-title p {
+    font-size: 1.1rem;
+    color: #666;
+    /* max-width: 600px; */
+    margin: 0 auto;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.page-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.page-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+.page-subtitle {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.btn-refresh {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.apps-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.apps-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.apps-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #495057;
+    font-size: 1.25rem;
+}
+
+.apps-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.stat-badge.active {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.apps-body {
+    padding: 0;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.apps-table {
+    width: 100%;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.apps-table thead th {
+    background: linear-gradient(135deg, #495057 0%, #6c757d 100%);
+    color: white;
+    padding: 1.25rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: left;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.apps-table thead th:first-child {
+    border-radius: 0;
+}
+
+.apps-table thead th:last-child {
+    border-radius: 0;
+}
+
+.apps-table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.apps-table tbody tr:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    transform: scale(1.01);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.apps-table tbody tr.active-row {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(25, 135, 84, 0.05) 100%);
+}
+
+.apps-table tbody tr.inactive-row {
+    background: linear-gradient(135deg, rgba(108, 117, 125, 0.05) 0%, rgba(73, 80, 87, 0.05) 100%);
+}
+
+.apps-table tbody tr.expired-row {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, rgba(214, 51, 132, 0.05) 100%);
+}
+
+.apps-table td {
+    padding: 1.25rem 1rem;
+    vertical-align: middle;
+    border: none;
+}
+
+.app-code {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.app-code code {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #495057;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.copy-btn, .secret-view-btn {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    border: none;
+    color: white;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.copy-btn:hover, .secret-view-btn:hover {
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.secret-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.secret-masked {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #6c757d;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+}
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+}
+
+.type-badge.type-temporary {
+    background: linear-gradient(135deg, #fd7e14 0%, #e55a4e 100%);
+    box-shadow: 0 4px 15px rgba(253, 126, 20, 0.3);
+}
+
+.type-badge.type-daily {
+    background: linear-gradient(135deg, #20c997 0%, #0d6efd 100%);
+    box-shadow: 0 4px 15px rgba(32, 201, 151, 0.3);
+}
+
+.type-badge.type-permanent {
+    background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
+    box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
+}
+
+.app-name {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.usage-info {
+    min-width: 120px;
+}
+
+.usage-text {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.expire-date, .usage-note {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+}
+
+.status-badge.status-active {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.status-badge.status-inactive {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.status-badge.status-expired {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.create-time {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.create-time-detail {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-btn.btn-enable {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.action-btn.btn-disable {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.loading-content, .empty-content, .error-content {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+}
+
+.empty-content i, .error-content i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #dee2e6;
+}
+
+.empty-content p, .error-content p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.empty-content small {
+    color: #adb5bd;
+}
+
+/* Toast 样式 */
+.toast-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-message.toast-error {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .page-title-wrapper {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .apps-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .apps-stats {
+        justify-content: center;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .apps-table {
+        min-width: 800px;
+    }
+    
+    .apps-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .app-code, .secret-container {
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: flex-start;
+    }
+    
+    .copy-btn, .secret-view-btn {
+        padding: 4px 6px;
+        font-size: 0.7rem;
+    }
+    
+    .type-badge, .status-badge {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+    
+    .action-btn {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-header {
+        margin-left: -15px;
+        margin-right: -15px;
+        border-radius: 0;
+    }
+    
+    .apps-card {
+        margin-left: -15px;
+        margin-right: -15px;
+        border-radius: 0;
+    }
+    
+    .toast-message {
+        right: 10px;
+        left: 10px;
+        transform: translateY(-100%);
+    }
+    
+    .toast-message.show {
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function loadApps() {
+    fetch('/api/apps')
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.getElementById('appsTableBody');
+        if (data.success && data.apps.length > 0) {
+            // 更新统计数据
+            updateStats(data.apps);
+            
+            tbody.innerHTML = data.apps.map(app => {
+                let authTypeText = '';
+                let authTypeClass = '';
+                if (app.auth_type === 'temporary') {
+                    authTypeText = '临时';
+                    authTypeClass = 'type-temporary';
+                } else if (app.auth_type === 'daily') {
+                    authTypeText = '按天';
+                    authTypeClass = 'type-daily';
+                } else {
+                    authTypeText = '永久';
+                    authTypeClass = 'type-permanent';
+                }
+                
+                let usageInfo = '';
+                if (app.auth_type === 'temporary') {
+                    const percentage = (app.used_count / app.app_number * 100).toFixed(1);
+                    usageInfo = `
+                        <div class="usage-info">
+                            <div class="usage-text">${app.used_count}/${app.app_number} 次</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                } else if (app.auth_type === 'daily') {
+                    const expireDate = new Date(app.expire_date);
+                    const isExpired = app.is_expired;
+                    if (isExpired) {
+                        usageInfo = `
+                            <div class="usage-info expired">
+                                <div class="usage-text">已过期</div>
+                                <div class="expire-date">${expireDate.toLocaleDateString()}</div>
+                            </div>
+                        `;
+                    } else {
+                        const daysLeft = Math.ceil((expireDate - new Date()) / (1000 * 60 * 60 * 24));
+                        usageInfo = `
+                            <div class="usage-info active">
+                                <div class="usage-text">剩余 ${daysLeft} 天</div>
+                                <div class="expire-date">${expireDate.toLocaleDateString()}</div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    usageInfo = `
+                        <div class="usage-info permanent">
+                            <div class="usage-text">已使用 ${app.used_count} 次</div>
+                            <div class="usage-note">无限制</div>
+                        </div>
+                    `;
+                }
+                
+                const rowClass = app.is_expired ? 'expired-row' : (app.is_active ? 'active-row' : 'inactive-row');
+                
+                return `
+                    <tr class="app-row ${rowClass}">
+                        <td>
+                            <div class="app-name">
+                                <span class="name-text">${app.description || '未命名应用'}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="app-code" onclick="copyToClipboard('${app.app_code}')">
+                                <code>${app.app_code}</code>
+                               
+                            </div>
+                        </td>
+                        <td>
+                            <div class="secret-container" onclick="copyToClipboard('${app.secret_key}')">
+                                <code class="secret-masked">••••••••••••••••</code>
+                                
+                            </div>
+                        </td>
+                        <td>
+                            <span class="type-badge ${authTypeClass}">
+                                <i class="bi bi-${app.auth_type === 'temporary' ? 'clock-history' : app.auth_type === 'daily' ? 'calendar-day' : 'infinity'}">${authTypeText}</i>
+                                
+                            </span>
+                        </td>
+                        
+                        <td>${usageInfo}</td>
+                        <td>
+                            <span class="status-badge ${app.is_active && !app.is_expired ? 'status-active' : app.is_expired ? 'status-expired' : 'status-inactive'}">
+                                <i class="bi bi-${app.is_active && !app.is_expired ? 'check-circle' : app.is_expired ? 'x-circle' : 'pause-circle'}">
+                                    ${app.is_active && !app.is_expired ? '启用' : (app.is_expired ? '已过期' : '禁用')}
+                                </i>
+                                
+                            </span>
+                        </td>
+                        <td>
+                            <div class="create-time">${new Date(app.created_at).toLocaleDateString()}</div>
+                            <div class="create-time-detail">${new Date(app.created_at).toLocaleTimeString()}</div>
+                        </td>
+                        <td>
+                            <button class="action-btn ${app.is_active ? 'btn-disable' : 'btn-enable'}" 
+                                    onclick="toggleAppStatus(${app.id}, ${app.is_active})" 
+                                    ${app.is_expired ? 'disabled' : ''}
+                                    title="${app.is_active ? '禁用应用' : '启用应用'}">
+                                <i class="bi bi-${app.is_active ? 'pause' : 'play'}">
+                                    ${app.is_active ? '禁用' : '启用'}
+                                </i>
+                                
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr class="empty-row">
+                    <td colspan="8">
+                        <div class="empty-content">
+                            <i class="bi bi-inbox"></i>
+                            <p>暂无应用授权</p>
+                            <small>点击首页创建您的第一个应用授权</small>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            // 重置统计数据
+            updateStats([]);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('appsTableBody').innerHTML = `
+            <tr class="error-row">
+                <td colspan="8">
+                    <div class="error-content">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>加载失败</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadApps()">重试</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function updateStats(apps) {
+    const totalApps = apps.length;
+    const activeApps = apps.filter(app => app.is_active && !app.is_expired).length;
+    
+    document.getElementById('totalApps').textContent = totalApps;
+    document.getElementById('activeApps').textContent = activeApps;
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('已复制到剪贴板');
+    }).catch(() => {
+        showToast('复制失败', 'error');
+    });
+}
+
+function copySecret(appId) {
+    const secretElement = document.getElementById(`secret-${appId}`);
+    const secretKey = secretElement.textContent;
+    copyToClipboard(secretKey);
+}
+
+function showToast(message, type = 'success') {
+    // 创建简单的toast提示
+    const toast = document.createElement('div');
+    toast.className = `toast-message toast-${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 2000);
+}
+
+function toggleSecret(appId) {
+    const secretElement = document.getElementById(`secret-${appId}`);
+    const hiddenElement = document.getElementById(`secret-hidden-${appId}`);
+    const eyeIcon = document.getElementById(`eye-icon-${appId}`);
+    
+    if (secretElement.classList.contains('hidden')) {
+        // 显示密钥
+        secretElement.classList.remove('hidden');
+        hiddenElement.classList.add('hidden');
+        eyeIcon.className = 'bi bi-eye-slash';
+    } else {
+        // 隐藏密钥
+        secretElement.classList.add('hidden');
+        hiddenElement.classList.remove('hidden');
+        eyeIcon.className = 'bi bi-eye';
+    }
+}
+
+function toggleAppStatus(appId, currentStatus) {
+    fetch(`/api/apps/${appId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadApps(); // 重新加载列表
+        } else {
+            alert('操作失败: ' + data.message);
+        }
+    });
+}
+
+// 显示密钥弹窗
+function showSecretModal(secretKey, appCode) {
+    document.getElementById('modalAppCode').value = appCode;
+    document.getElementById('modalSecretKey').value = secretKey;
+    
+    const modal = new bootstrap.Modal(document.getElementById('secretModal'));
+    modal.show();
+}
+
+// 从弹窗复制内容
+function copyFromModal(elementId) {
+    const element = document.getElementById(elementId);
+    element.select();
+    element.setSelectionRange(0, 99999); // 移动端兼容
+    
+    navigator.clipboard.writeText(element.value).then(() => {
+        showToast('已复制到剪贴板');
+    }).catch(() => {
+        // 降级方案
+        document.execCommand('copy');
+        showToast('已复制到剪贴板');
+    });
+}
+
+// 页面加载时获取应用列表
+document.addEventListener('DOMContentLoaded', loadApps);
+</script>
+{% endblock %}
